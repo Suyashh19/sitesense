@@ -1,0 +1,36 @@
+# docker compose up --build            -> app on http://localhost:5173 (SQLite inside the backend container)
+# docker compose --profile postgis up --build   -> same, but backed by PostGIS (set DATABASE_URL in .env, see .env.example)
+services:
+  db:
+    profiles: ["postgis"]
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: sitesense
+      POSTGRES_PASSWORD: sitesense
+      POSTGRES_DB: sitesense
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sitesense"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

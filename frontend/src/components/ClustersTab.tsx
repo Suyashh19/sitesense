@@ -1,9 +1,10 @@
 import { Bar, BarChart, CartesianGrid, Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { CircleMarker, MapContainer, TileLayer, Tooltip as MapTip } from 'react-leaflet'
-import type { Analysis } from '../types'
+import type { Analysis, Limit } from '../types'
+import { TILE_ATTRIBUTION, TILE_URL } from '../config'
 import { Kpi, colorFor } from '../ui'
 
-export function ClustersTab({ data, k, setK }: { data: Analysis; k: number; setK: (v: number) => void }) {
+export function ClustersTab({ data, k, lim, setK }: { data: Analysis; k: number; lim: Limit; setK: (v: number) => void }) {
   const { zones, clusters, top } = data
   const names = clusters.fit.map(f => String(f.name))
   const col = colorFor(names)
@@ -19,7 +20,7 @@ export function ClustersTab({ data, k, setK }: { data: Analysis; k: number; setK
       </div>
       <div className="panel">
         <label>Number of clusters: <b>{k}</b></label>
-        <input type="range" min={3} max={7} value={k} onChange={e => setK(Number(e.target.value))} />
+        <input type="range" min={lim.minimum} max={lim.maximum} value={k} onChange={e => setK(Number(e.target.value))} />
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
           {names.map(n => <span key={n} style={{ fontSize: '.85rem' }}><span style={{ color: col(n) }}>●</span> {n}</span>)}
         </div>
@@ -29,7 +30,7 @@ export function ClustersTab({ data, k, setK }: { data: Analysis; k: number; setK
           <h4>Geographic map of zone types (gold ring = top picks)</h4>
           <div className="map" style={{ height: 440 }}>
             <MapContainer center={center} zoom={11} style={{ height: '100%' }}>
-              <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} />
               {zones.map(z => (
                 <CircleMarker key={z.zone_id} center={[z.lat, z.lon]} radius={topIds.has(z.zone_id) ? 11 : 7}
                   pathOptions={{ color: topIds.has(z.zone_id) ? '#f5b301' : '#fff', weight: topIds.has(z.zone_id) ? 4 : 1, fillColor: col(z.archetype), fillOpacity: 0.8 }}>

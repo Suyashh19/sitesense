@@ -8,3 +8,6 @@ xgboost
 sqlalchemy>=2.0
 geoalchemy2
 psycopg[binary]
+python-dotenv
+requests
+anthropic>=0.40.0

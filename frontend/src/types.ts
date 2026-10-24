@@ -7,7 +7,12 @@ export interface Meta {
   cities: string[]; domains: { name: string; icon: string }[]
   presets: Record<string, Record<string, number>>; labels: Record<string, string>
   db: { engine: string; postgis: boolean }
+  params: Record<keyof Params, Limit>; sim_params: Record<string, Limit>
+  llm_provider: string | null
 }
+export interface Limit { default: number | string; minimum?: number; maximum?: number }
+export interface Point { lat: number; lon: number }
+export interface Briefing { text: string; source: string }
 export interface Card { name: string; impact: number | null; verdict: 'good' | 'bad' | 'neutral'; evidence: string[] }
 export interface Site {
   pick: number; zone_id: string; zone_name: string; lat: number; lon: number; score: number
@@ -44,5 +49,6 @@ export interface SimResult {
   }
   base: { rev: number; profit: number; profit_p10: number }
   scenario: { rev: number; profit: number; profit_p10: number }
-  resilience: { pick: number; zone_name: string; base: number; scenario: number; change: number; survives: boolean }[]
+  resilience: { pick: number; zone_name: string; base: number; scenario: number; change: number; survives: boolean; placed_nearby: number }[]
+  placed_nearby: number
 }

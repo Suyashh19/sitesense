@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { nearby } from '../api'
-import type { Analysis, Params } from '../types'
+import { briefing, nearby } from '../api'
+import type { Analysis, Briefing, Params } from '../types'
 import { Kpi, Rich, n1 } from '../ui'
 import { MapView } from './MapView'
 
@@ -11,6 +11,14 @@ export function TopTab({ data, p, sel, setSel }: { data: Analysis; p: Params; se
   useEffect(() => {
     nearby(p, cur.lat, cur.lon).then(setNear).catch(() => setNear([]))
   }, [cur.zone_id, p.city, p.domain, p.n_stores])  // eslint-disable-line react-hooks/exhaustive-deps
+  // template briefing arrives with the analysis; an LLM-written one (if a key is configured) replaces it when ready
+  const [brief, setBrief] = useState<Briefing & { pick: number } | null>(null)
+  useEffect(() => {
+    const ac = new AbortController()
+    briefing(p, cur.pick, ac.signal).then(b => setBrief({ ...b, pick: cur.pick })).catch(() => {})
+    return () => ac.abort()
+  }, [p, cur.pick])
+  const shown = brief?.pick === cur.pick ? brief : { text: cur.briefing, source: 'template' }
 
   return (
     <>
@@ -58,8 +66,8 @@ export function TopTab({ data, p, sel, setSel }: { data: Analysis; p: Params; se
         </div>
       </div>
       <div className="panel">
-        <h4>📝 Executive briefing (auto-generated offline from the model's outputs)</h4>
-        <p>{cur.briefing}</p>
+        <h4>📝 Executive briefing ({shown.source === 'template' ? "auto-generated from the model's outputs" : `written by ${shown.source} from the model's outputs; no other information added`})</h4>
+        <p>{shown.text}</p>
       </div>
       <div className="panel scroll">
         <h4>Recommended sites at a glance</h4>

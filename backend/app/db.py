@@ -5,15 +5,15 @@ ST_DWithin / ST_Distance). Otherwise a local SQLite file is used so the project 
 (spatial queries then fall back to a haversine formula).
 """
 import json
-import os
 from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import (Boolean, Column, DateTime, Float, Integer, MetaData, String, Table, Text, create_engine, text)
 
-URL = os.getenv("DATABASE_URL", "sqlite:///./retail.db")
-engine = create_engine(URL, future=True)
+from .config import DATABASE_URL
+
+engine = create_engine(DATABASE_URL, future=True)
 IS_PG = engine.dialect.name == "postgresql"
 HAS_POSTGIS = False
 
