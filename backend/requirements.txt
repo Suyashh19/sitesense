@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pandas
+numpy
+scipy
+scikit-learn
+xgboost
+sqlalchemy>=2.0
+geoalchemy2
+psycopg[binary]
