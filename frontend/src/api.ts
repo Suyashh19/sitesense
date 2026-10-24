@@ -1,7 +1,8 @@
 import type { Analysis, Meta, Params, SimResult } from './types'
+import { BACKEND_URL } from './config'
 
 async function req<T>(url: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(url, init)
+  const r = await fetch(BACKEND_URL.replace(/\/$/, '') + url, init)
   if (!r.ok) throw new Error(`${r.status}: ${await r.text()}`)
   return r.json() as Promise<T>
 }
