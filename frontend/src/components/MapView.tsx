@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { CircleMarker, LayerGroup, LayersControl, MapContainer, Marker, Popup, Rectangle, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import type { Analysis } from '../types'
+import { TILE_ATTRIBUTION, TILE_URL } from '../config'
 
 function Fly({ to }: { to: [number, number] }) {
   const map = useMap()
@@ -28,7 +29,7 @@ export function MapView({ data, sel }: { data: Analysis; sel: number }) {
   return (
     <div className="map">
       <MapContainer center={center} zoom={11} style={{ height: '100%' }}>
-        <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} />
         <Fly to={[cur.lat, cur.lon]} />
         <LayersControl position="topright" collapsed={false}>
           <LayersControl.Overlay checked name="Profit heat-map (green = profitable)">

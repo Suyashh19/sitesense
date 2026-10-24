@@ -1,6 +1,6 @@
 """FastAPI service: exposes the AI engine to the React frontend.  Run: uvicorn app.main:app --reload --port 8000"""
+import json
 import math
-import os
 import re
 import threading
 from contextlib import asynccontextmanager
@@ -11,12 +11,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from . import db
+from . import db, llm
+from .config import CORS_ORIGINS
 from .data import CITIES, DOMAINS, FEATURES, LABELS, make_city
 from .model import WEIGHT_PRESETS, ExpansionModel, factor_cards, summary
 
 _models: dict = {}
 _lock = threading.Lock()  # cluster() mutates the cached model frame
+_briefings: dict = {}  # (params, pick) -> LLM-written briefing
 
 
 @asynccontextmanager
@@ -26,9 +28,7 @@ async def lifespan(_):
 
 
 app = FastAPI(title="Retail Expansion Intelligence API", lifespan=lifespan)
-# Comma-separated list in CORS_ORIGINS to restrict; defaults to any origin (no cookies/credentials are used).
-_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"], allow_headers=["*"])
 
 
 class Params(BaseModel):
@@ -37,19 +37,41 @@ class Params(BaseModel):
     n_stores: int = Field(60, ge=30, le=100)
     preset: str = "Balanced"
     weights: dict[str, float] | None = None
-    max_rent: float = 250
-    max_capex: float = 300
+    max_rent: float = Field(250, ge=40, le=250)
+    max_capex: float = Field(300, ge=20, le=500)
     min_units: int = Field(1, ge=0, le=5)
-    min_own_km: float = 1.0
-    min_sep_km: float = 3.0
+    min_own_km: float = Field(1.0, ge=0, le=4)
+    min_sep_km: float = Field(3.0, ge=1, le=6)
     k: int = Field(5, ge=3, le=7)
 
 
+class Point(BaseModel):
+    lat: float
+    lon: float
+
+
 class SimParams(Params):
-    pick: int = 1
-    extra_comp: int = 0
-    rent_pct: float = 0
-    own_km: float = 0
+    pick: int = Field(1, ge=1)
+    extra_comp: int = Field(0, ge=0, le=6)
+    rent_pct: float = Field(0, ge=-20, le=60)
+    own_km: float = Field(0, ge=0, le=4)
+    extra_competitors: list[Point] = []  # competitors dropped on the map; counted when within 1 km of a site
+
+
+class BriefingParams(Params):
+    pick: int = Field(1, ge=1)
+
+
+def limits(model: type[BaseModel]):
+    """Defaults and allowed ranges of each numeric/text parameter, so the UI never hardcodes them."""
+    keep = ("default", "minimum", "maximum")
+    return {k: {x: v[x] for x in keep if x in v} for k, v in model.model_json_schema()["properties"].items() if "default" in v}
+
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    a = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2
+    return 2 * 6371 * math.asin(math.sqrt(a))
 
 
 def clean(o):
@@ -104,10 +126,16 @@ def briefing(p, r, why, risks, n_viable):
     return " ".join(out)
 
 
+@app.get("/api/health")
+def health():
+    return {"ok": True}
+
+
 @app.get("/api/meta")
 def meta():
     return {"cities": list(CITIES), "domains": [{"name": k, "icon": v["icon"]} for k, v in DOMAINS.items()],
-            "presets": WEIGHT_PRESETS, "labels": LABELS, "db": {"engine": db.engine.dialect.name, "postgis": db.HAS_POSTGIS}}
+            "presets": WEIGHT_PRESETS, "labels": LABELS, "db": {"engine": db.engine.dialect.name, "postgis": db.HAS_POSTGIS},
+            "params": limits(Params), "sim_params": limits(SimParams), "llm_provider": llm.provider_label()}
 
 
 @app.post("/api/analyze")
@@ -171,18 +199,53 @@ def simulate(p: SimParams):
     counts, edges = np.histogram(mc["steady"], bins=40)
     pct = np.percentile(mc["cum"], [10, 50, 90], axis=0)
     own = p.own_km if p.own_km > 0 else None
-    wi = m.what_if(cs, p.extra_comp, p.rent_pct, own)
+    placed = lambda r: sum(haversine_km(r.lat, r.lon, c.lat, c.lon) <= 1.0 for c in p.extra_competitors)  # noqa: E731
+    wi = m.what_if(cs, p.extra_comp + placed(cs), p.rent_pct, own)
     resil = []
     for idx, r in top.iterrows():
-        w = m.what_if(r, p.extra_comp, p.rent_pct, own)
+        w = m.what_if(r, p.extra_comp + placed(r), p.rent_pct, own)
         resil.append({"pick": int(r.pick), "zone_name": r.zone_name, "base": r.profit, "scenario": w["profit"],
-                      "change": w["profit"] - r.profit, "survives": w["profit"] > 0})
+                      "change": w["profit"] - r.profit, "survives": w["profit"] > 0, "placed_nearby": placed(r)})
     return clean({
         "mc": {"p_profit": mc["p_profit"], "p_break_even": mc["p_break_even"], "be_median": mc["be_median"], "var5": mc["var5"], "roi24": mc["roi24"],
                "hist": [{"x": float((edges[i] + edges[i + 1]) / 2), "n": int(counts[i])} for i in range(len(counts))],
                "fan": [{"month": i + 1, "p10": float(pct[0][i]), "p50": float(pct[1][i]), "p90": float(pct[2][i])} for i in range(pct.shape[1])]},
         "base": {"rev": cs.pred_revenue, "profit": cs.profit, "profit_p10": cs.profit_p10},
-        "scenario": {"rev": wi["rev"], "profit": wi["profit"], "profit_p10": wi["profit_p10"]}, "resilience": resil})
+        "scenario": {"rev": wi["rev"], "profit": wi["profit"], "profit_p10": wi["profit_p10"]}, "resilience": resil,
+        "placed_nearby": placed(cs)})
+
+
+BRIEFING_PROMPT = ("You are a retail real-estate analyst. Write a 4-6 sentence recommendation for the site described in the "
+                   "JSON facts, using ONLY those facts. Do not invent numbers, places or facts. Money values are Indian rupees "
+                   "in lakh (L) per month unless stated. 'why' lists factors that raise predicted sales, 'risks' are warnings. "
+                   "Plain text, no headings, no markdown.")
+
+
+@app.post("/api/briefing")
+def briefing_ai(p: BriefingParams):
+    """Executive briefing for one pick: written by the configured LLM from the computed facts, else the template."""
+    m, _, ranked, top, contrib, _, _ = context(p)
+    cs = top[top.pick == p.pick] if not top.empty else top
+    if cs.empty:
+        raise HTTPException(400, "pick not found")
+    r = cs.iloc[0]
+    alt = top[top.pick != p.pick].iloc[0] if len(top) > 1 else None
+    _, why, risks, cmp = summary(m, r, contrib.loc[cs.index[0]], alt, contrib.loc[alt.name] if alt is not None else None)
+    keys = ["pick", "zone_name", "score", "pred_revenue", "rev_p10", "rev_p90", "profit", "profit_p10", "payback_months",
+            "roi_pct", "archetype", "rent_psf", "vacant_units", "competitors_1km", "own_nearest_km", "population_k"]
+    facts = clean({"city": p.city, "business": p.domain, "viable_zones": len(ranked), **{k: r[k] for k in keys}})
+    template = briefing(p, facts, why, risks, len(ranked))
+    if not llm.active_provider():
+        return {"text": template, "source": "template"}
+    key = p.model_dump_json()
+    if key not in _briefings:
+        strip = lambda s: re.sub(r"\*\*|\*", "", s)  # noqa: E731
+        payload = {**facts, "why": [strip(w) for w in why], "risks": [strip(x) for x in risks], "comparison": [strip(c) for c in cmp]}
+        text = llm.generate(BRIEFING_PROMPT, json.dumps(payload))
+        if not text:
+            return {"text": template, "source": "template"}
+        _briefings[key] = text
+    return {"text": _briefings[key], "source": llm.provider_label()}
 
 
 @app.get("/api/nearby")
