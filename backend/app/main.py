@@ -1,5 +1,6 @@
 """FastAPI service: exposes the AI engine to the React frontend.  Run: uvicorn app.main:app --reload --port 8000"""
 import math
+import os
 import re
 import threading
 from contextlib import asynccontextmanager
@@ -25,8 +26,9 @@ async def lifespan(_):
 
 
 app = FastAPI(title="Retail Expansion Intelligence API", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-                   allow_methods=["*"], allow_headers=["*"])
+# Comma-separated list in CORS_ORIGINS to restrict; defaults to any origin (no cookies/credentials are used).
+_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+app.add_middleware(CORSMiddleware, allow_origins=_origins, allow_methods=["*"], allow_headers=["*"])
 
 
 class Params(BaseModel):
