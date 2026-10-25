@@ -1,0 +1,88 @@
+# City profile for Pune (PRD section 7, DS-01..DS-07 and ES-01..ES-08). Adding a city = adding a file like this one.
+# Everything under `estimates` and `localities` is an ESTIMATE, not measured data, and the app labels it that way.
+key: pune
+name: Pune
+country: IN
+bbox: {south: 18.44, west: 73.72, north: 18.66, east: 73.97}   # PMC + Pimpri-Chinchwad + Hinjewadi + Kharadi corridors
+h3_resolution: 9
+worldpop_url: https://data.worldpop.org/GIS/Population/Global_2000_2020_1km/2020/IND/ind_ppp_2020_1km_Aggregated.tif
+overpass_endpoints:
+  - https://overpass-api.de/api/interpreter
+  - https://overpass.kumi.systems/api/interpreter
+  - https://overpass.private.coffee/api/interpreter
+estimates:
+  commercial_multiplier: 1.6          # commercial price per sq ft vs residential
+  monthly_yield: 0.006                # monthly rent = price x yield (ES-02)
+  deposit_months: 6                   # part of upfront budget (A-12)
+  idw_bandwidth_km: 2.5               # smoothing of locality prices between neighbourhoods (ES-01)
+  workers_per_office: 40
+  students_per_college: 1800
+  visitors_per_hospital: 600
+# ~35 localities, approximate residential Rs/sq ft from public listing-portal averages (ES-01). Estimates, editable.
+localities:
+  - {name: Koregaon Park,  lat: 18.5362, lon: 73.8930, price_psf: 15500}
+  - {name: Kalyani Nagar,  lat: 18.5463, lon: 73.9033, price_psf: 13500}
+  - {name: Deccan Gymkhana,lat: 18.5167, lon: 73.8410, price_psf: 14000}
+  - {name: Shivajinagar,   lat: 18.5308, lon: 73.8475, price_psf: 12500}
+  - {name: Camp,           lat: 18.5122, lon: 73.8780, price_psf: 11500}
+  - {name: Sadashiv Peth,  lat: 18.5130, lon: 73.8530, price_psf: 12500}
+  - {name: Kothrud,        lat: 18.5074, lon: 73.8077, price_psf: 11000}
+  - {name: Aundh,          lat: 18.5580, lon: 73.8075, price_psf: 11500}
+  - {name: Baner,          lat: 18.5590, lon: 73.7868, price_psf: 10800}
+  - {name: Balewadi,       lat: 18.5750, lon: 73.7790, price_psf: 10200}
+  - {name: Pashan,         lat: 18.5370, lon: 73.7900, price_psf: 9800}
+  - {name: Bavdhan,        lat: 18.5140, lon: 73.7740, price_psf: 9300}
+  - {name: Viman Nagar,    lat: 18.5679, lon: 73.9143, price_psf: 10000}
+  - {name: Kharadi,        lat: 18.5511, lon: 73.9400, price_psf: 8800}
+  - {name: Magarpatta,     lat: 18.5167, lon: 73.9300, price_psf: 9300}
+  - {name: Hadapsar,       lat: 18.5089, lon: 73.9259, price_psf: 6800}
+  - {name: Wanowrie,       lat: 18.4874, lon: 73.8960, price_psf: 8200}
+  - {name: Kondhwa,        lat: 18.4650, lon: 73.8890, price_psf: 6400}
+  - {name: NIBM Road,      lat: 18.4775, lon: 73.9020, price_psf: 8400}
+  - {name: Undri,          lat: 18.4570, lon: 73.9120, price_psf: 6100}
+  - {name: Bibwewadi,      lat: 18.4730, lon: 73.8600, price_psf: 8300}
+  - {name: Swargate,       lat: 18.5018, lon: 73.8636, price_psf: 9800}
+  - {name: Katraj,         lat: 18.4575, lon: 73.8650, price_psf: 5900}
+  - {name: Warje,          lat: 18.4900, lon: 73.8000, price_psf: 7200}
+  - {name: Sinhagad Road,  lat: 18.4800, lon: 73.8200, price_psf: 7000}
+  - {name: Yerawada,       lat: 18.5530, lon: 73.8850, price_psf: 8200}
+  - {name: Dhanori,        lat: 18.5920, lon: 73.9080, price_psf: 6600}
+  - {name: Wagholi,        lat: 18.5800, lon: 73.9800, price_psf: 5200}
+  - {name: Hinjewadi,      lat: 18.5912, lon: 73.7380, price_psf: 7800}
+  - {name: Wakad,          lat: 18.5990, lon: 73.7600, price_psf: 7900}
+  - {name: Pimple Saudagar,lat: 18.6000, lon: 73.7960, price_psf: 8000}
+  - {name: Pimpri,         lat: 18.6279, lon: 73.8009, price_psf: 6200}
+  - {name: Chinchwad,      lat: 18.6450, lon: 73.7970, price_psf: 6400}
+  - {name: Nigdi,          lat: 18.6500, lon: 73.7700, price_psf: 6900}
+  - {name: Bhosari,        lat: 18.6470, lon: 73.8470, price_psf: 5100}
+  - {name: Lohegaon,       lat: 18.5800, lon: 73.9200, price_psf: 5400}
+# Curated metro corridor stations (DS-07). Operating Purple/Aqua lines, approximate coordinates.
+metro_stations:
+  - {name: PCMC,           lat: 18.6283, lon: 73.8000}
+  - {name: Sant Tukaram Nagar, lat: 18.6226, lon: 73.8097}
+  - {name: Bhosari,        lat: 18.6200, lon: 73.8180}
+  - {name: Kasarwadi,      lat: 18.6070, lon: 73.8270}
+  - {name: Phugewadi,      lat: 18.5980, lon: 73.8310}
+  - {name: Dapodi,         lat: 18.5830, lon: 73.8370}
+  - {name: Bopodi,         lat: 18.5710, lon: 73.8390}
+  - {name: Khadki,         lat: 18.5640, lon: 73.8430}
+  - {name: Range Hill,     lat: 18.5560, lon: 73.8340}
+  - {name: Shivajinagar,   lat: 18.5310, lon: 73.8520}
+  - {name: Civil Court,    lat: 18.5290, lon: 73.8570}
+  - {name: Budhwar Peth,   lat: 18.5160, lon: 73.8560}
+  - {name: Mandai,         lat: 18.5130, lon: 73.8610}
+  - {name: Swargate,       lat: 18.5010, lon: 73.8640}
+  - {name: Vanaz,          lat: 18.5075, lon: 73.8040}
+  - {name: Anand Nagar,    lat: 18.5075, lon: 73.8120}
+  - {name: Ideal Colony,   lat: 18.5085, lon: 73.8200}
+  - {name: Nal Stop,       lat: 18.5110, lon: 73.8310}
+  - {name: Garware College,lat: 18.5120, lon: 73.8370}
+  - {name: Deccan Gymkhana,lat: 18.5170, lon: 73.8420}
+  - {name: Chhatrapati Sambhaji Udyan, lat: 18.5230, lon: 73.8470}
+  - {name: PMC,            lat: 18.5280, lon: 73.8540}
+  - {name: Pune Railway Station, lat: 18.5290, lon: 73.8740}
+  - {name: Ruby Hall Clinic, lat: 18.5360, lon: 73.8780}
+  - {name: Bund Garden,    lat: 18.5370, lon: 73.8830}
+  - {name: Yerwada,        lat: 18.5440, lon: 73.8910}
+  - {name: Kalyani Nagar,  lat: 18.5480, lon: 73.9020}
+  - {name: Ramwadi,        lat: 18.5510, lon: 73.9160}

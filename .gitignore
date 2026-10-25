@@ -4,3 +4,5 @@ node_modules/
 dist/
 *.db
 .env
+backend/data/raw/
+catboost_info/

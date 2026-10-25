@@ -1,0 +1,73 @@
+# Retail DNA, version 1 (PRD section 11 + Appendix A). One block per category. Adding a category changes no code.
+# Weights are expert priors for FG1..FG10 and must sum to 100. Economics are stated assumptions (ES-05/06).
+version: 1
+factor_groups:
+  FG1: Residential Demand
+  FG2: Daytime Workforce
+  FG3: Youth and Students
+  FG4: Affluence
+  FG5: Footfall Anchors
+  FG6: Category Complementors
+  FG7: Accessibility
+  FG8: Competition Headroom
+  FG9: Affordability
+  FG10: Growth
+categories:
+  sports:
+    name: Sports & Gym Equipment
+    icon: "sports"
+    blurb: Sports shops, gym gear and fitness equipment stores
+    competitors: [{shop: [sports, outdoor]}]
+    complementors: [{leisure: [fitness_centre, sports_centre, stadium, pitch, park]}, {amenity: [college, university]}]
+    chains: [decathlon, sport station, nike, adidas, puma, reebok, under armour, sports authority]
+    dna: {FG1: 14, FG2: 4, FG3: 20, FG4: 10, FG5: 6, FG6: 22, FG7: 8, FG8: 8, FG9: 6, FG10: 2}
+    behaviour: {type: mild_clustering, alpha: 1.0, beta: 2.0}
+    econ: {margin: 0.30, fixed_lakh: 2.5, size_sqft: 1200, fitout_psf: 1800, inventory_lakh: 18, spend_per_person: 75, catchment_km: 2.5, other_density: 0.08}
+  food:
+    name: Food & Restaurants
+    icon: "food"
+    blurb: Restaurants, cafés and quick-service food outlets
+    competitors: [{amenity: [restaurant, cafe, fast_food, food_court]}]
+    complementors: [{office: ["*"]}, {amenity: [cinema, theatre, bar, pub]}, {shop: [mall]}]
+    chains: [mcdonald, kfc, domino, pizza hut, starbucks, burger king, subway, cafe coffee day, haldiram, barista, social, chaayos, wow momo, burger singh]
+    dna: {FG1: 16, FG2: 22, FG3: 6, FG4: 10, FG5: 14, FG6: 4, FG7: 8, FG8: 6, FG9: 8, FG10: 6}
+    behaviour: {type: strong_clustering, alpha: 1.0, beta: 1.6}
+    econ: {margin: 0.62, fixed_lakh: 5.0, size_sqft: 1500, fitout_psf: 3000, inventory_lakh: 6, spend_per_person: 700, catchment_km: 1.8, other_density: 0.8}
+  fashion:
+    name: Fashion & Clothing
+    icon: "fashion"
+    blurb: Clothing, footwear and fashion accessory stores
+    competitors: [{shop: [clothes, boutique, shoes, fashion_accessories, bag]}]
+    complementors: [{shop: [mall, jewelry, department_store]}]
+    chains: [zudio, max, pantaloons, westside, lifestyle, h&m, zara, trends, fabindia, w for woman, biba, allen solly, peter england, van heusen, levi, raymond, bata, woodland, metro shoes]
+    dna: {FG1: 10, FG2: 4, FG3: 12, FG4: 16, FG5: 24, FG6: 4, FG7: 10, FG8: 6, FG9: 8, FG10: 6}
+    behaviour: {type: clustering, alpha: 1.1, beta: 1.8}
+    econ: {margin: 0.42, fixed_lakh: 3.5, size_sqft: 1800, fitout_psf: 2200, inventory_lakh: 25, spend_per_person: 450, catchment_km: 3.0, other_density: 0.25}
+  pharmacy:
+    name: Pharmacy & Healthcare
+    icon: "pharmacy"
+    blurb: Pharmacies and healthcare retail
+    competitors: [{amenity: [pharmacy]}, {healthcare: [pharmacy]}]
+    complementors: [{amenity: [hospital, clinic, doctors]}, {healthcare: [clinic, doctor, hospital]}]
+    chains: [apollo, medplus, wellness forever, netmeds, health and glow, guardian, frank ross, jan aushadhi, sanjivani]
+    dna: {FG1: 24, FG2: 6, FG3: 2, FG4: 8, FG5: 4, FG6: 22, FG7: 10, FG8: 10, FG9: 8, FG10: 6}
+    behaviour: {type: spacing, alpha: 1.0, beta: 2.8}
+    econ: {margin: 0.20, fixed_lakh: 2.0, size_sqft: 500, fitout_psf: 1500, inventory_lakh: 12, spend_per_person: 250, catchment_km: 1.2, other_density: 0.25}
+  electronics:
+    name: Electronics & Mobile Retail
+    icon: "electronics"
+    blurb: Mobile phones, computers and consumer electronics stores
+    competitors: [{shop: [electronics, mobile_phone, computer, hifi, appliance]}]
+    complementors: [{office: [it, company, telecommunication]}, {shop: [mall]}]
+    chains: [croma, reliance digital, vijay sales, poorvika, sangeetha, apple, samsung, mi store, oneplus, lot mobiles, big c, imagine]
+    dna: {FG1: 10, FG2: 14, FG3: 12, FG4: 18, FG5: 14, FG6: 6, FG7: 8, FG8: 4, FG9: 8, FG10: 6}
+    behaviour: {type: clustering, alpha: 1.2, beta: 1.7}
+    econ: {margin: 0.12, fixed_lakh: 3.0, size_sqft: 1500, fitout_psf: 2000, inventory_lakh: 40, spend_per_person: 400, catchment_km: 3.0, other_density: 0.15}
+# Brand-tier attractiveness multipliers for the gravity model (ES-07).
+tiers: {national_chain: 1.6, regional_chain: 1.25, independent: 1.0}
+# Shared infrastructure selectors (OSM tags) used for FG5 anchors and FG7 accessibility.
+anchors: [{shop: [mall, department_store, supermarket, marketplace]}, {amenity: [marketplace, cinema, bank]}, {tourism: [attraction]}]
+transit: {station: [{railway: [station, subway_entrance]}, {public_transport: [station]}], bus: [{highway: [bus_stop]}]}
+roads: [trunk, primary, secondary, tertiary]
+education: [{amenity: [college, university]}]
+hospitals: [{amenity: [hospital]}]

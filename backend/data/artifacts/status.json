@@ -1,0 +1,309 @@
+{
+  "city": "Pune",
+  "started": "2026-10-24T22:25:18+00:00",
+  "stages": [
+    {
+      "name": "Ingest OpenStreetMap",
+      "detail": "15,350 map features fetched in 10 queries",
+      "seconds": 0.3,
+      "source": "OpenStreetMap contributors (ODbL) via Overpass API",
+      "real": true
+    },
+    {
+      "name": "Ingest WorldPop",
+      "detail": "population raster ind_ppp_2020_1km_Aggregated.tif",
+      "seconds": 0.3,
+      "source": "WorldPop 2020, 1 km (CC BY 4.0)",
+      "real": true
+    },
+    {
+      "name": "H3 grid",
+      "detail": "6,541 hexagons at resolution 9 (10.5 ha each); 6,480 analysed",
+      "seconds": 7.2,
+      "real": true
+    },
+    {
+      "name": "Growth trend",
+      "detail": "ohsome unreachable - neutral value used and flagged",
+      "seconds": 56.3,
+      "real": false
+    },
+    {
+      "name": "Rent model M-1",
+      "detail": "CatBoost on 35 locality reference rents; leave-one-locality-out error 15% vs 14% for price x yield",
+      "seconds": 67.3,
+      "real": false,
+      "source": "curated locality prices (estimate)"
+    },
+    {
+      "name": "Archetypes M-6",
+      "detail": "6 zone types, silhouette 0.30",
+      "seconds": 70.6,
+      "real": false
+    },
+    {
+      "name": "Models: Sports & Gym Equipment",
+      "detail": "25 competitors mapped; only 7 labelled positive zones - too few to learn from; ranking falls back to the transparent index",
+      "seconds": 114.1
+    },
+    {
+      "name": "Models: Food & Restaurants",
+      "detail": "1898 competitors mapped; 103 positive zones (national chain outlet in the zone)",
+      "seconds": 165.2
+    },
+    {
+      "name": "Models: Fashion & Clothing",
+      "detail": "352 competitors mapped; 52 positive zones (national chain outlet in the zone)",
+      "seconds": 221.8
+    },
+    {
+      "name": "Models: Pharmacy & Healthcare",
+      "detail": "219 competitors mapped; 25 positive zones (national chain outlet in the zone)",
+      "seconds": 283.8
+    },
+    {
+      "name": "Models: Electronics & Mobile Retail",
+      "detail": "139 competitors mapped; 35 positive zones (branded (chain or brand-tagged) outlet in the zone)",
+      "seconds": 339.6
+    }
+  ],
+  "finished": "2026-10-24T22:30:58+00:00",
+  "seconds": 340.0,
+  "meta": {
+    "categories": {
+      "sports": {
+        "labels": {
+          "source": "branded (chain or brand-tagged) outlet in the zone",
+          "positives": 7,
+          "zones": 6480
+        },
+        "enabled": false,
+        "reason": "only 7 labelled positive zones - too few to learn from; ranking falls back to the transparent index",
+        "m2": null,
+        "m3": null,
+        "importance": null,
+        "competitors": 25,
+        "chains": 6,
+        "median_profit_lakh": -0.9499588604451135,
+        "viable_share": 0.26141975308641974
+      },
+      "food": {
+        "labels": {
+          "source": "national chain outlet in the zone",
+          "positives": 103,
+          "zones": 6480
+        },
+        "enabled": true,
+        "reason": null,
+        "m2": {
+          "recall_top10": 0.6310679611650486,
+          "recall_top20": 0.8252427184466019,
+          "baseline_population_top10": 0.2524271844660194,
+          "baseline_index_top10": 0.44660194174757284,
+          "random_top10": 0.1,
+          "validation": "5-fold spatial block cross-validation (whole ~5 km blocks held out)"
+        },
+        "m3": {
+          "ndcg10": 0.6192243495651923,
+          "ndcg10_index": 0.4035053789712663,
+          "ndcg10_population": 0.3340297495514374,
+          "recall_top10": 0.6990291262135923
+        },
+        "importance": {
+          "comp_nonchain_500": 0.09,
+          "transit_km": 0.0843,
+          "road_idx_1km": 0.0833,
+          "affluence": 0.0829,
+          "viability": 0.081,
+          "dist_centre_km": 0.07,
+          "access_idx": 0.0662,
+          "comp_nonchain_1km": 0.0652,
+          "pop_1km": 0.0552,
+          "eff_pop_1km": 0.0538,
+          "pop_3km": 0.0538,
+          "anchors_1km": 0.0519,
+          "compl_500": 0.0352,
+          "compl_1km": 0.0333,
+          "bus_stops_500m": 0.0262,
+          "rent_psf": 0.0252,
+          "workers_1km": 0.0214,
+          "students_1km": 0.021,
+          "growth": 0.0
+        },
+        "competitors": 1898,
+        "chains": 148,
+        "median_profit_lakh": -1.7843670682094166,
+        "viable_share": 0.19753086419753085
+      },
+      "fashion": {
+        "labels": {
+          "source": "national chain outlet in the zone",
+          "positives": 52,
+          "zones": 6480
+        },
+        "enabled": true,
+        "reason": null,
+        "m2": {
+          "recall_top10": 0.6923076923076923,
+          "recall_top20": 0.9230769230769231,
+          "baseline_population_top10": 0.25,
+          "baseline_index_top10": 0.4423076923076923,
+          "random_top10": 0.1,
+          "validation": "5-fold spatial block cross-validation (whole ~5 km blocks held out)"
+        },
+        "m3": {
+          "ndcg10": 0.6260730331869256,
+          "ndcg10_index": 0.3301416384252193,
+          "ndcg10_population": 0.29898803955296344,
+          "recall_top10": 0.75
+        },
+        "importance": {
+          "road_idx_1km": 0.0919,
+          "transit_km": 0.0886,
+          "access_idx": 0.0862,
+          "dist_centre_km": 0.0852,
+          "affluence": 0.0776,
+          "comp_nonchain_500": 0.0767,
+          "pop_3km": 0.0681,
+          "anchors_1km": 0.0652,
+          "viability": 0.0586,
+          "pop_1km": 0.0581,
+          "eff_pop_1km": 0.049,
+          "comp_nonchain_1km": 0.0476,
+          "workers_1km": 0.0376,
+          "bus_stops_500m": 0.031,
+          "students_1km": 0.0238,
+          "rent_psf": 0.0214,
+          "compl_500": 0.0205,
+          "compl_1km": 0.0129,
+          "growth": 0.0
+        },
+        "competitors": 352,
+        "chains": 71,
+        "median_profit_lakh": 1.8834755248526267,
+        "viable_share": 0.7552469135802469
+      },
+      "pharmacy": {
+        "labels": {
+          "source": "national chain outlet in the zone",
+          "positives": 25,
+          "zones": 6480
+        },
+        "enabled": true,
+        "reason": null,
+        "m2": {
+          "recall_top10": 0.52,
+          "recall_top20": 0.6,
+          "baseline_population_top10": 0.08,
+          "baseline_index_top10": 0.12,
+          "random_top10": 0.1,
+          "validation": "5-fold spatial block cross-validation (whole ~5 km blocks held out)"
+        },
+        "m3": {
+          "ndcg10": 0.4879381475955582,
+          "ndcg10_index": 0.22928276076200368,
+          "ndcg10_population": 0.2169001461954208,
+          "recall_top10": 0.64
+        },
+        "importance": {
+          "road_idx_1km": 0.0962,
+          "transit_km": 0.0938,
+          "dist_centre_km": 0.0852,
+          "access_idx": 0.0748,
+          "viability": 0.07,
+          "pop_3km": 0.0686,
+          "eff_pop_1km": 0.0605,
+          "anchors_1km": 0.059,
+          "pop_1km": 0.0576,
+          "comp_nonchain_500": 0.0552,
+          "compl_1km": 0.0548,
+          "affluence": 0.05,
+          "compl_500": 0.0486,
+          "bus_stops_500m": 0.0343,
+          "comp_nonchain_1km": 0.0262,
+          "workers_1km": 0.0257,
+          "students_1km": 0.0229,
+          "rent_psf": 0.0167,
+          "growth": 0.0
+        },
+        "competitors": 219,
+        "chains": 29,
+        "median_profit_lakh": -0.8913473535069393,
+        "viable_share": 0.21003086419753086
+      },
+      "electronics": {
+        "labels": {
+          "source": "branded (chain or brand-tagged) outlet in the zone",
+          "positives": 35,
+          "zones": 6480
+        },
+        "enabled": true,
+        "reason": null,
+        "m2": {
+          "recall_top10": 0.8571428571428571,
+          "recall_top20": 0.9714285714285714,
+          "baseline_population_top10": 0.2,
+          "baseline_index_top10": 0.5714285714285714,
+          "random_top10": 0.1,
+          "validation": "5-fold spatial block cross-validation (whole ~5 km blocks held out)"
+        },
+        "m3": {
+          "ndcg10": 0.5589863430065902,
+          "ndcg10_index": 0.26112373254544075,
+          "ndcg10_population": 0.21763647765910207,
+          "recall_top10": 0.8
+        },
+        "importance": {
+          "road_idx_1km": 0.109,
+          "access_idx": 0.0914,
+          "anchors_1km": 0.0867,
+          "transit_km": 0.0824,
+          "comp_nonchain_500": 0.0681,
+          "dist_centre_km": 0.0652,
+          "viability": 0.06,
+          "eff_pop_1km": 0.0576,
+          "affluence": 0.0543,
+          "pop_3km": 0.0514,
+          "workers_1km": 0.049,
+          "pop_1km": 0.0467,
+          "comp_nonchain_1km": 0.0371,
+          "bus_stops_500m": 0.0333,
+          "students_1km": 0.0281,
+          "rent_psf": 0.0276,
+          "compl_500": 0.0267,
+          "compl_1km": 0.0252,
+          "growth": 0.0
+        },
+        "competitors": 139,
+        "chains": 27,
+        "median_profit_lakh": -1.2268962499238252,
+        "viable_share": 0.24938271604938272
+      }
+    },
+    "rent": {
+      "n_localities": 35,
+      "loo_mape": 0.15241956852073169,
+      "baseline_mape": 0.14033840609634196,
+      "model": "CatBoost (leave-one-locality-out)"
+    },
+    "archetype_silhouette": 0.30182080086437757,
+    "grid": {
+      "zones": 6541,
+      "analysed": 6480,
+      "res": 9
+    },
+    "osm_counts": {
+      "shop": 828,
+      "leisure": 1195,
+      "amenity": 4195,
+      "office": 565,
+      "healthcare": 1065,
+      "tourism": 12,
+      "railway": 145,
+      "public_transport": 194,
+      "highway_major": 6492,
+      "highway_bus": 659
+    },
+    "config_version": 1
+  }
+}

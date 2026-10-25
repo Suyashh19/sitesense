@@ -1,56 +1,52 @@
-# Retail Expansion Intelligence Platform
+# SiteSense – Retail Expansion Intelligence Platform
 
-AI platform that tells a retail owner **where to open the next store**. It learns from the owner's existing
-stores, predicts sales for every vacant zone in a city, ranks sites, and explains each recommendation.
+Tells a retail owner **where to open the next store** in Pune. It scores every ~10-hectare hexagon of the city for the chosen business,
+learns what proven locations look like, simulates customers to estimate profit as a *range*, and explains each recommendation in plain language.
+Built from the SiteSense PRD (Triwizathon, Problem Statement 1).
 
-## Stack
-| Layer | Tech |
+Five categories: Sports & Gym Equipment · Food & Restaurants · Fashion & Clothing · Pharmacy & Healthcare · Electronics & Mobile.
+
+## Run
+```
+run-backend.bat      # first run builds the data + models (internet, several minutes), then serves http://127.0.0.1:8000
+run-frontend.bat     # React app on http://localhost:5173
+```
+Or build the data yourself: `cd backend && python -m app.pipeline.build` (add `--refresh` to re-download OpenStreetMap data).
+The app also has a **Data & trust** page with a *Build* button, live log and the lineage of every number.
+Docker: `docker compose up --build` (PostGIS optional: `--profile postgis`).
+
+## What is real and what is estimated
+| Real data | Modelled / estimated (always labelled in the UI) |
 |---|---|
-| Frontend | React + TypeScript (Vite), Leaflet + OpenStreetMap, Recharts |
-| Backend | FastAPI (Python) |
-| AI / ML | XGBoost, scikit-learn (K-Means, PCA, k-NN, cross-validation), pandas, NumPy, SciPy |
-| Database | PostgreSQL + PostGIS (set `DATABASE_URL`); SQLite fallback with zero setup |
+| Shops, offices, colleges, hospitals, bus/rail stops, roads – OpenStreetMap via Overpass (ODbL) | Population per zone – WorldPop 1 km raster (CC BY 4.0), redistributed by OSM activity |
+| Growth trend – ohsome API history of OSM | Property prices of ~35 localities (`config/city_pune.yaml`), commercial rent (CatBoost M-1) |
+| | Margins, fixed costs, store sizes, spend per person (`config/categories.yaml`) |
 
-## Run (two terminals)
-```
-run-backend.bat      # FastAPI on http://127.0.0.1:8000   (uses the .venv in this folder)
-run-frontend.bat     # React on   http://localhost:5173
-```
-Open http://localhost:5173. The first load takes a few seconds while the demand model trains.
+There is **no real sales data**. "Proven location" means *an established chain already trades there* (weak label); profit comes from a
+Huff gravity-model simulation with Monte Carlo over uncertain inputs, so every figure is a range.
 
-Optional PostGIS: `set DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/retail` before starting the backend
-(needs a Postgres server with the PostGIS extension). Zones are then stored as `geometry(Point,4326)` with a GiST index
-and the nearby-stores query uses `ST_DWithin`.
+## How it works (backend/app)
+| Stage | Module | PRD |
+|---|---|---|
+| Ingest OSM + WorldPop | `pipeline/osm.py`, `population.py` | DS-01..04 |
+| H3 grid (res 9), ring features, 10 factor groups | `pipeline/grid.py`, `features.py` | FG1–FG10 |
+| Rent regressor, leave-locality-out validated | `engine/rent.py` | M-1 |
+| Business Opportunity Index from Retail DNA weights | `engine/scoring.py` | F-09, F-07 |
+| PU viability classifier + LambdaRank ranker, spatial-block CV, leakage mask | `engine/learn.py` | M-2, M-3 |
+| Gravity economics, Monte Carlo, cannibalisation | `engine/gravity.py` | M-4, M-8 |
+| SHAP grouped by factor, risk rules, confidence, contrast | `engine/learn.py`, `service.py` | M-10, F-11 |
+| Zone archetypes (K-means on PCA) | `engine/learn.py` | M-6 |
+| Multi-store plan (CP-SAT) | `engine/optimise.py` | M-9, F-14 |
+| Plain-English requests → whitelisted tool call | `engine/intent.py` | M-11 |
+| API | `main.py` | |
 
-API smoke test: `cd backend` then `..\.venv\Scripts\python.exe test_api.py`.
+Nothing about a city, category, tag or weight is hardcoded in code: `backend/config/city_pune.yaml` and `categories.yaml` define them
+(add a category or city = add YAML). Weights must sum to 100 and are validated at load.
 
-### Configuration (`.env`)
-Nothing is hardcoded: copy `.env.example` to `.env` in the project root (git-ignored). Backend and frontend both read it.
-- `VITE_BACKEND_URL` - backend base URL for a separately hosted frontend (e.g. the Render backend). Leave empty locally
-  (Vite proxies `/api`) and in Docker (nginx proxies `/api`). On a static host, set it as a build-time env var.
-- `GEMINI_API_KEY` / `GROQ_API_KEY` / `ANTHROPIC_API_KEY` - optional; one key turns on AI-written executive briefings.
-  Test with `cd backend && python -m app.llm`. Without a key the briefing is built from templates.
-- `DATABASE_URL`, `CORS_ORIGINS`, `VITE_MAP_TILE_URL`, `VITE_MAP_ATTRIBUTION` - optional, see `.env.example`.
+## Configuration (`.env`, optional)
+`DATABASE_URL` (PostGIS or SQLite default), `CORS_ORIGINS`, `VITE_BACKEND_URL` (separately hosted frontend), `VITE_MAP_TILE_URL`,
+`GEMINI_API_KEY` / `GROQ_API_KEY` / `ANTHROPIC_API_KEY` (optional: an LLM may only *rephrase* a computed briefing).
 
-Parameter defaults and slider ranges are defined once in the backend (`Params` / `SimParams` in `app/main.py`) and
-served by `/api/meta`.
-
-### Docker
-```
-docker compose up --build                     # http://localhost:5173 (SQLite)
-docker compose --profile postgis up --build   # with PostGIS; set DATABASE_URL in .env
-```
-
-## Tabs
-1. **Top 5 Locations** - map (profit heat-map, competition, stores) with factor-wise evidence, strengths, risks, comparison,
-   and an executive briefing (optionally rewritten by Gemini/Groq/Claude from the computed facts only).
-2. **Zone Clusters** - labelled K-Means archetypes, PCA map, radar, domain fit.
-3. **Simulation & What-If** - Monte-Carlo (4,000 futures) and scenario lab; click the map to drop competitor stores
-   (each one within 1 km of a site counts as an extra competitor there).
-4. **Compare & Ranking** - score breakdown, head-to-head, CSV export.
-5. **Model & Assumptions** - validation, feature importance, assumptions, limitations.
-
-## Data & limitations
-Zone attributes are **simulated** (real city coordinates, synthetic data); the revenue process is hidden from the model.
-Margins, store sizes, fixed costs, capex and ramp-up are stated assumptions. The PostGIS path is implemented but was not
-tested against a live PostGIS server (the SQLite path is tested). No paid APIs or keys are required; an LLM key is optional.
+## Limitations
+OSM completeness varies (shown as a coverage indicator and lowers confidence); population is a modelled 1 km grid; locality prices and rents are
+approximate estimates; footfall is inferred from POIs; online demand, zoning and lease availability are not modelled; models show correlation, not causation.

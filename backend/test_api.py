@@ -1,26 +1,21 @@
-"""API smoke test:  python test_api.py"""
+"""API smoke test on real artifacts:  python test_api.py"""
 from fastapi.testclient import TestClient
 from app.main import app
 
 with TestClient(app) as c:
-    meta = c.get("/api/meta").json(); print("meta:", meta["cities"], meta["db"])
-    for dom in [d["name"] for d in meta["domains"]]:
-        r = c.post("/api/analyze", json={"city": "Pune", "domain": dom}); assert r.status_code == 200, r.text
-        j = r.json(); assert not j["empty"]
-        print(dom, "| top1:", j["top"][0]["zone_name"], round(j["top"][0]["profit"], 1), "| picks:", len(j["top"]),
-              "| cards:", len(j["top"][0]["cards"]), "| clusters:", len(j["clusters"]["fit"]))
-    j = c.post("/api/analyze", json={"city": "Bengaluru", "domain": "Café / quick-service restaurant", "max_rent": 60, "k": 6}).json()
-    print("tight rent:", "empty" if j["empty"] else len(j["top"]))
-    j = c.post("/api/analyze", json={"max_rent": 40}).json(); print("impossible rent empty:", j["empty"])
-    s = c.post("/api/simulate", json={"pick": 1, "extra_comp": 3, "rent_pct": 30}).json()
-    print("sim:", round(s["mc"]["p_profit"], 2), len(s["mc"]["hist"]), len(s["mc"]["fan"]), s["scenario"]["profit"], len(s["resilience"]))
-    t = c.post("/api/analyze", json={}).json()["top"][0]
-    n = c.get("/api/nearby", params=dict(city="Pune", domain="Luxury fashion boutique", n_stores=60, lat=t["lat"], lon=t["lon"])).json()
-    print("nearby stores:", len(n), c.get("/api/history").json()[0]["top5"][:2])
-    assert c.get("/api/health").json()["ok"]
-    print("limits:", meta["params"]["n_stores"], meta["sim_params"]["rent_pct"], "llm:", meta["llm_provider"])
-    b = c.post("/api/briefing", json={"pick": 2}).json(); print("briefing:", b["source"], b["text"][:90])
-    far = c.post("/api/simulate", json={"pick": 1}).json()
-    near = c.post("/api/simulate", json={"pick": 1, "extra_competitors": [{"lat": t["lat"], "lon": t["lon"]}] * 3}).json()
-    assert near["placed_nearby"] == 3 and near["scenario"]["profit"] < far["scenario"]["profit"]
-    print("placed competitor:", round(far["scenario"]["profit"], 2), "->", round(near["scenario"]["profit"], 2))
+    m = c.get("/api/meta").json(); assert m["ready"]
+    print("categories:", [x["key"] for x in m["categories"]])
+    for k in [x["key"] for x in m["categories"]]:
+        r = c.post("/api/analyze", json={"category": k}); assert r.status_code == 200, r.text
+        j = r.json(); assert not j["empty"], j
+        t = j["top"][0]
+        print(k, "|", t["name"], "| BOI", t["boi"], "| profit", t["profit"], "| conf", t["confidence"], "|", j["model_used"], "| funnel", j["funnel"])
+    j = c.post("/api/analyze", json={"category": "food", "budget_lakh": 5}).json(); print("tiny budget ->", j.get("message"))
+    top = c.post("/api/analyze", json={"category": "pharmacy", "own_stores": [{"lat": 18.52, "lon": 73.85}]}).json()["top"]
+    print("zone:", c.get(f"/api/zone/{top[0]['h3']}", params={"category": "pharmacy"}).status_code)
+    e = c.post("/api/economics", json={"category": "pharmacy", "h3": top[0]["h3"]}); print("economics:", e.status_code, e.json()["sensitivity"][:2])
+    s = c.post("/api/scenario", json={"category": "pharmacy", "new_rent_change_pct": 30, "new_competitors": [{"lat": top[0]["lat"], "lon": top[0]["lon"]}]}).json(); print("scenario:", s["rows"][:2])
+    p = c.post("/api/plan", json={"category": "fashion", "k": 3}).json(); print("plan:", p.get("feasible"), p.get("net_profit"), p.get("greedy_net_profit"), p.get("binding"))
+    a = c.post("/api/ask", json={"text": "best 3 pharmacy sites near Baner under 60 lakh"}).json(); print("ask:", a["executed_as"], a["result"]["empty"] if a["result"] else None)
+    print("briefing:", c.post("/api/briefing", json={"category": "food"}).json()["text"][:160])
+    print("layer:", len(c.get("/api/layer/food").json()["h3"]), "| history:", len(c.get("/api/history").json()), "| pipeline ready:", c.get("/api/pipeline").json()["ready"])
