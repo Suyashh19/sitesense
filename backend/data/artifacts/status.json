@@ -1,74 +1,74 @@
 {
   "city": "Pune",
-  "started": "2026-10-24T22:25:18+00:00",
+  "started": "2026-10-25T10:11:56+00:00",
   "stages": [
     {
       "name": "Ingest OpenStreetMap",
       "detail": "15,350 map features fetched in 10 queries",
-      "seconds": 0.3,
+      "seconds": 1.1,
       "source": "OpenStreetMap contributors (ODbL) via Overpass API",
       "real": true
     },
     {
       "name": "Ingest WorldPop",
       "detail": "population raster ind_ppp_2020_1km_Aggregated.tif",
-      "seconds": 0.3,
+      "seconds": 1.1,
       "source": "WorldPop 2020, 1 km (CC BY 4.0)",
       "real": true
     },
     {
       "name": "H3 grid",
       "detail": "6,541 hexagons at resolution 9 (10.5 ha each); 6,480 analysed",
-      "seconds": 7.2,
+      "seconds": 6.4,
       "real": true
     },
     {
       "name": "Growth trend",
       "detail": "ohsome unreachable - neutral value used and flagged",
-      "seconds": 56.3,
+      "seconds": 53.9,
       "real": false
     },
     {
       "name": "Rent model M-1",
       "detail": "CatBoost on 35 locality reference rents; leave-one-locality-out error 15% vs 14% for price x yield",
-      "seconds": 67.3,
+      "seconds": 65.4,
       "real": false,
       "source": "curated locality prices (estimate)"
     },
     {
       "name": "Archetypes M-6",
       "detail": "6 zone types, silhouette 0.30",
-      "seconds": 70.6,
+      "seconds": 66.0,
       "real": false
     },
     {
       "name": "Models: Sports & Gym Equipment",
       "detail": "25 competitors mapped; only 7 labelled positive zones - too few to learn from; ranking falls back to the transparent index",
-      "seconds": 114.1
+      "seconds": 116.4
     },
     {
       "name": "Models: Food & Restaurants",
       "detail": "1898 competitors mapped; 103 positive zones (national chain outlet in the zone)",
-      "seconds": 165.2
+      "seconds": 178.9
     },
     {
       "name": "Models: Fashion & Clothing",
       "detail": "352 competitors mapped; 52 positive zones (national chain outlet in the zone)",
-      "seconds": 221.8
+      "seconds": 239.9
     },
     {
       "name": "Models: Pharmacy & Healthcare",
       "detail": "219 competitors mapped; 25 positive zones (national chain outlet in the zone)",
-      "seconds": 283.8
+      "seconds": 293.8
     },
     {
       "name": "Models: Electronics & Mobile Retail",
       "detail": "139 competitors mapped; 35 positive zones (branded (chain or brand-tagged) outlet in the zone)",
-      "seconds": 339.6
+      "seconds": 369.6
     }
   ],
-  "finished": "2026-10-24T22:30:58+00:00",
-  "seconds": 340.0,
+  "finished": "2026-10-25T10:18:06+00:00",
+  "seconds": 369.9,
   "meta": {
     "categories": {
       "sports": {

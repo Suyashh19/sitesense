@@ -6,3 +6,6 @@ dist/
 .env
 backend/data/raw/
 catboost_info/
+
+# local browser profile used for screenshots
+docs/img/_profile/
