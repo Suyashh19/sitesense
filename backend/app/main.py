@@ -328,3 +328,25 @@ def dna():
     return {"version": c["version"], "factor_groups": c["factor_groups"],
             "categories": {k: {"name": v["name"], "icon": v["icon"], "dna": v["dna"], "behaviour": v["behaviour"]["type"],
                                "complementors": v["complementors"], "chains": v["chains"]} for k, v in c["categories"].items()}}
+
+
+# ------------------------------------------------------------------------------------------------ static frontend (single-container deploys)
+# Set STATIC_DIR to a built frontend (frontend/dist) to serve the React app from this same server, e.g. on Hugging Face Spaces.
+# Registered last so every /api route above takes precedence; unknown paths fall back to index.html for client-side routing.
+import os  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from fastapi.responses import FileResponse  # noqa: E402
+
+_static = os.getenv("STATIC_DIR")
+if _static and Path(_static, "index.html").is_file():
+    _static_root = Path(_static).resolve()
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str):
+        if path.startswith("api/"):
+            raise HTTPException(404, "not found")
+        f = (_static_root / path).resolve()
+        if path and f.is_file() and f.is_relative_to(_static_root):
+            return FileResponse(f)
+        return FileResponse(_static_root / "index.html")
