@@ -84,8 +84,11 @@ class Market:
 
     # ------------------------------------------------------------------ vectorised simulation for a set of candidate zones
     def simulate(self, cand: np.ndarray, rent_lakh: np.ndarray, own_attr: np.ndarray | None = None, draws: int = 200,
-                 seed: int = 0, rent_sigma: np.ndarray | None = None, chunk: int = 25) -> dict:
+                 seed: int = 0, rent_sigma: np.ndarray | None = None, chunk: int | None = None) -> dict:
         a, rng = self.a, np.random.default_rng(seed)
+        # Each block builds ~a dozen (chunk, draws, neighbours) temporaries; cap a block at ~1M cells (~8 MB each) so a
+        # request stays well inside a 512 MB host. Chunking never changes the results, only the peak memory.
+        chunk = chunk or max(1, 1_000_000 // (draws * self.nbr.shape[1]))
         own_attr = np.zeros(self.g.n) if own_attr is None else own_attr
         n = len(cand)
         rev = np.zeros((n, draws), dtype="float32")
